@@ -529,7 +529,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	else {
 	  Node newSplit = newSplitNode(splitDecision.splitTest,
 	    node.getObservedClassDistribution(), splitDecision.numSplits());
-	  ((EFDTSplitNode) newSplit).attributeObservers = node.attributeObservers; // copy the attribute observers
+	  ((MEFDTSplitNode) newSplit).attributeObservers = node.attributeObservers; // copy the attribute observers
 	  newSplit.setInfogainSum(node.getInfogainSum());  // transfer infogain history, leaf to split
 
 	  for (int i = 0; i < splitDecision.numSplits(); i++) {
@@ -544,7 +544,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	      newChild.usedNominalAttributes.add(splitDecision.splitTest.getAttsTestDependsOn()[0]);
 	      // no  nominal attribute should be split on more than once in the path
 	    }
-	    ((EFDTSplitNode) newSplit).setChild(i, newChild);
+	    ((MEFDTSplitNode) newSplit).setChild(i, newChild);
 	  }
 	  this.activeLeafNodeCount--;
 	  this.decisionNodeCount++;
@@ -568,7 +568,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
     if (this.treeRoot == null) {
       this.treeRoot = newLearningNode();
-      ((EFDTNode) this.treeRoot).setRoot(true);
+      ((MEFDTNode) this.treeRoot).setRoot(true);
       this.activeLeafNodeCount = 1;
     }
 
@@ -588,21 +588,21 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
 
   protected LearningNode newLearningNode() {
-    return new EFDTLearningNode(new double[0]);
+    return new MEFDTLearningNode(new double[0]);
   }
 
   protected LearningNode newLearningNode(double[] initialClassObservations) {
-    return new EFDTLearningNode(initialClassObservations);
+    return new MEFDTLearningNode(initialClassObservations);
   }
 
   protected SplitNode newSplitNode(InstanceConditionalTest splitTest,
 				   double[] classObservations, int size) {
-    return new EFDTSplitNode(splitTest, classObservations, size);
+    return new MEFDTSplitNode(splitTest, classObservations, size);
   }
 
   protected SplitNode newSplitNode(InstanceConditionalTest splitTest,
 				   double[] classObservations) {
-    return new EFDTSplitNode(splitTest, classObservations);
+    return new MEFDTSplitNode(splitTest, classObservations);
   }
 
   private int argmax(double[] array) {
@@ -620,17 +620,17 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     return maxarg;
   }
 
-  public interface EFDTNode {
+  public interface MEFDTNode {
 
     boolean isRoot();
 
     void setRoot(boolean isRoot);
 
-    void learnFromInstance(Instance inst, EFDT ht, EFDTSplitNode parent, int parentBranch);
+    void learnFromInstance(Instance inst, MEFDT ht, MEFDTSplitNode parent, int parentBranch);
 
-    void setParent(EFDTSplitNode parent);
+    void setParent(MEFDTSplitNode parent);
 
-    EFDTSplitNode getParent();
+    MEFDTSplitNode getParent();
 
   }
 
@@ -710,7 +710,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       return this.observedClassDistribution.getArrayCopy();
     }
 
-    public double[] getClassVotes(Instance inst, EFDT ht) {
+    public double[] getClassVotes(Instance inst, MEFDT ht) {
       return this.observedClassDistribution.getArrayCopy();
     }
 
@@ -722,7 +722,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       return this.observedClassDistribution.numNonZeroEntries() < 2;
     }
 
-    public void describeSubtree(EFDT ht, StringBuilder out,
+    public void describeSubtree(MEFDT ht, StringBuilder out,
 				int indent) {
       StringUtils.appendIndented(out, indent, "Leaf ");
       out.append(ht.getClassNameString());
@@ -833,7 +833,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void describeSubtree(EFDT ht, StringBuilder out,
+    public void describeSubtree(MEFDT ht, StringBuilder out,
 				int indent) {
       for (int branch = 0; branch < numChildren(); branch++) {
 	Node child = getChild(branch);
@@ -864,7 +864,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
   }
 
 
-  public class EFDTSplitNode extends SplitNode implements EFDTNode {
+  public class MEFDTSplitNode extends SplitNode implements MEFDTNode {
 
     /**
      *
@@ -872,17 +872,17 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
     private boolean isRoot;
 
-    private EFDTSplitNode parent = null;
+    private MEFDTSplitNode parent = null;
 
     private static final long serialVersionUID = 1L;
 
     protected AutoExpandVector<AttributeClassObserver> attributeObservers;
 
-    public EFDTSplitNode(InstanceConditionalTest splitTest, double[] classObservations, int size) {
+    public MEFDTSplitNode(InstanceConditionalTest splitTest, double[] classObservations, int size) {
       super(splitTest, classObservations, size);
     }
 
-    public EFDTSplitNode(InstanceConditionalTest splitTest, double[] classObservations) {
+    public MEFDTSplitNode(InstanceConditionalTest splitTest, double[] classObservations) {
       super(splitTest, classObservations);
     }
 
@@ -896,13 +896,13 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       this.isRoot = isRoot;
     }
 
-    public void killSubtree(EFDT ht) {
+    public void killSubtree(MEFDT ht) {
       for (Node child : this.children) {
 	if (child != null) {
 
 	  //Recursive delete of SplitNodes
 	  if (child instanceof SplitNode) {
-	    ((EFDTSplitNode) child).killSubtree(ht);
+	    ((MEFDTSplitNode) child).killSubtree(ht);
 	  }
 	  else if (child instanceof ActiveLearningNode) {
 	    ht.activeLeafNodeCount--;
@@ -917,7 +917,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
     // DRY Don't Repeat Yourself... code duplicated from ActiveLearningNode in VFDT.java. However, this is the most practical way to share stand-alone.
     public AttributeSplitSuggestion[] getBestSplitSuggestions(
-      SplitCriterion criterion, EFDT ht) {
+      SplitCriterion criterion, MEFDT ht) {
       List<AttributeSplitSuggestion> bestSuggestions = new LinkedList<>();
       double[] preSplitDist = this.observedClassDistribution.getArrayCopy();
       if (!ht.noPrePruneOption.isSet()) {
@@ -941,7 +941,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht, EFDTSplitNode parent, int parentBranch) {
+    public void learnFromInstance(Instance inst, MEFDT ht, MEFDTSplitNode parent, int parentBranch) {
 
       nodeTime++;
       //// Update node statistics and class distribution
@@ -967,12 +967,12 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       Node child = this.getChild(childBranch);
 
       if (child != null) {
-	((EFDTNode) child).learnFromInstance(inst, ht, this, childBranch);
+	((MEFDTNode) child).learnFromInstance(inst, ht, this, childBranch);
       }
 
     }
 
-    protected void reEvaluateBestSplit(EFDTSplitNode node, EFDTSplitNode parent,
+    protected void reEvaluateBestSplit(MEFDTSplitNode node, MEFDTSplitNode parent,
 				       int parentIndex) {
 
 
@@ -995,12 +995,12 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       }
 
       //compute Hoeffding bound
-      SplitCriterion splitCriterion = (SplitCriterion) getPreparedClassOption(EFDT.this.splitCriterionOption);
+      SplitCriterion splitCriterion = (SplitCriterion) getPreparedClassOption(MEFDT.this.splitCriterionOption);
       double hoeffdingBound = computeHoeffdingBound(splitCriterion.getRangeOfMerit(node.getClassDistributionAtTimeOfCreation()),
-	EFDT.this.splitConfidenceOption.getValue(), node.observedClassDistribution.sumOfValues());
+	MEFDT.this.splitConfidenceOption.getValue(), node.observedClassDistribution.sumOfValues());
 
       // get best split suggestions
-      AttributeSplitSuggestion[] bestSplitSuggestions = node.getBestSplitSuggestions(splitCriterion, EFDT.this);
+      AttributeSplitSuggestion[] bestSplitSuggestions = node.getBestSplitSuggestions(splitCriterion, MEFDT.this);
       Arrays.sort(bestSplitSuggestions);
 
       // get the best suggestion
@@ -1044,7 +1044,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	currentAverageMerit = node.getInfogainSum().get(node.splitTest.getAttsTestDependsOn()[0]) / node.getNumSplitAttempts();
       }
 
-      double tieThreshold = EFDT.this.tieThresholdOption.getValue();
+      double tieThreshold = MEFDT.this.tieThresholdOption.getValue();
 
       // compute the average deltaG
       double deltaG = bestSuggestionAverageMerit - currentAverageMerit;
@@ -1059,8 +1059,8 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	// if null split wins
 	if (splitDecision.splitTest == null) {
 
-	  node.killSubtree(EFDT.this);
-	  EFDTLearningNode replacement = (EFDTLearningNode) newLearningNode();
+	  node.killSubtree(MEFDT.this);
+	  EFDTLearningNode replacement = (MEFDTLearningNode) newLearningNode();
 	  replacement.setInfogainSum(node.getInfogainSum()); // transfer infogain history, split to replacement leaf
 	  if (node.getParent() != null) {
 	    node.getParent().setChild(parentIndex, replacement);
@@ -1076,7 +1076,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	  Node newSplit = newSplitNode(splitDecision.splitTest,
 	    node.getObservedClassDistribution(), splitDecision.numSplits());
 
-	  ((EFDTSplitNode) newSplit).attributeObservers = node.attributeObservers; // copy the attribute observers
+	  ((MEFDTSplitNode) newSplit).attributeObservers = node.attributeObservers; // copy the attribute observers
 	  newSplit.setInfogainSum(node.getInfogainSum());  // transfer infogain history, split to replacement split
 
 	  if (node.splitTest == splitDecision.splitTest
@@ -1086,7 +1086,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 	  ) {
 	    // change split but don't destroy the subtrees
 	    for (int i = 0; i < splitDecision.numSplits(); i++) {
-	      ((EFDTSplitNode) newSplit).setChild(i, this.getChild(i));
+	      ((MEFDTSplitNode) newSplit).setChild(i, this.getChild(i));
 	    }
 
 	  }
@@ -1094,7 +1094,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 
 	    // otherwise, torch the subtree and split on the new best attribute.
 
-	    this.killSubtree(EFDT.this);
+	    this.killSubtree(MEFDT.this);
 
 	    for (int i = 0; i < splitDecision.numSplits(); i++) {
 
@@ -1108,24 +1108,24 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
 		newChild.usedNominalAttributes.add(splitDecision.splitTest.getAttsTestDependsOn()[0]);
 		// no  nominal attribute should be split on more than once in the path
 	      }
-	      ((EFDTSplitNode) newSplit).setChild(i, newChild);
+	      ((MEFDTSplitNode) newSplit).setChild(i, newChild);
 	    }
 
-	    EFDT.this.activeLeafNodeCount--;
-	    EFDT.this.decisionNodeCount++;
-	    EFDT.this.activeLeafNodeCount += splitDecision.numSplits();
+	    MEFDT.this.activeLeafNodeCount--;
+	    MEFDT.this.decisionNodeCount++;
+	    MEFDT.this.activeLeafNodeCount += splitDecision.numSplits();
 
 	  }
 
 
 	  if (parent == null) {
-	    ((EFDTNode) newSplit).setRoot(true);
-	    ((EFDTNode) newSplit).setParent(null);
-	    EFDT.this.treeRoot = newSplit;
+	    ((MEFDTNode) newSplit).setRoot(true);
+	    ((MEFDTNode) newSplit).setParent(null);
+	    MEFDT.this.treeRoot = newSplit;
 	  }
 	  else {
-	    ((EFDTNode) newSplit).setRoot(false);
-	    ((EFDTNode) newSplit).setParent(parent);
+	    ((MEFDTNode) newSplit).setRoot(false);
+	    ((MEFDTNode) newSplit).setParent(parent);
 	    parent.setChild(parentIndex, newSplit);
 	  }
 	}
@@ -1133,12 +1133,12 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void setParent(EFDTSplitNode parent) {
+    public void setParent(MEFDTSplitNode parent) {
       this.parent = parent;
     }
 
     @Override
-    public EFDTSplitNode getParent() {
+    public MEFDTSplitNode getParent() {
       return this.parent;
     }
   }
@@ -1151,17 +1151,17 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
       super(initialClassObservations);
     }
 
-    public abstract void learnFromInstance(Instance inst, EFDT ht);
+    public abstract void learnFromInstance(Instance inst, MEFDT ht);
   }
 
 
-  public class EFDTLearningNode extends LearningNodeHO implements EFDTNode {
+  public class MEFDTLearningNode extends LearningNodeHO implements MEFDTNode {
 
     private boolean isRoot;
 
-    private EFDTSplitNode parent = null;
+    private MEFDTSplitNode parent = null;
 
-    public EFDTLearningNode(double[] initialClassObservations) {
+    public MEFDTLearningNode(double[] initialClassObservations) {
       super(initialClassObservations);
     }
 
@@ -1182,13 +1182,13 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht) {
+    public void learnFromInstance(Instance inst, MEFDT ht) {
       super.learnFromInstance(inst, ht);
 
     }
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht, EFDTSplitNode parent, int parentBranch) {
+    public void learnFromInstance(Instance inst, MEFDT ht, MEFDTSplitNode parent, int parentBranch) {
       learnFromInstance(inst, ht);
 
       if (ht.growthAllowed) {
@@ -1203,12 +1203,12 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void setParent(EFDTSplitNode parent) {
+    public void setParent(MEFDTSplitNode parent) {
       this.parent = parent;
     }
 
     @Override
-    public EFDTSplitNode getParent() {
+    public MEFDTSplitNode getParent() {
       return this.parent;
     }
 
@@ -1223,7 +1223,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht) {
+    public void learnFromInstance(Instance inst, MEFDT ht) {
       this.observedClassDistribution.addToValue((int) inst.classValue(),
 	inst.weight());
     }
@@ -1252,7 +1252,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht) {
+    public void learnFromInstance(Instance inst, MEFDT ht) {
       nodeTime++;
 
       if (this.isInitialized) {
@@ -1285,7 +1285,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     public AttributeSplitSuggestion[] getBestSplitSuggestions(
-      SplitCriterion criterion, EFDT ht) {
+      SplitCriterion criterion, MEFDT ht) {
       List<AttributeSplitSuggestion> bestSuggestions = new LinkedList<>();
       double[] preSplitDist = this.observedClassDistribution.getArrayCopy();
       if (!ht.noPrePruneOption.isSet()) {
@@ -1322,7 +1322,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public double[] getClassVotes(Instance inst, EFDT ht) {
+    public double[] getClassVotes(Instance inst, MEFDT ht) {
       if (getWeightSeen() >= ht.nbThresholdOption.getValue()) {
 	return HoeffdingOptionTree.doHoeffdingOtionTreePrediction(inst,
 	  this.observedClassDistribution,
@@ -1345,7 +1345,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public double[] getClassVotes(Instance inst, EFDT ht) {
+    public double[] getClassVotes(Instance inst, MEFDT ht) {
       if (getWeightSeen() >= ht.nbThresholdOption.getValue()) {
 	return ARFFIMTDD.doARFFIMTDDPrediction(inst,
 	  this.observedClassDistribution,
@@ -1373,7 +1373,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public void learnFromInstance(Instance inst, EFDT ht) {
+    public void learnFromInstance(Instance inst, MEFDT ht) {
       int trueClass = (int) inst.classValue();
       if (this.observedClassDistribution.maxIndex() == trueClass) {
 	this.mcCorrectWeight += inst.weight();
@@ -1386,7 +1386,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
 
     @Override
-    public double[] getClassVotes(Instance inst, EFDT ht) {
+    public double[] getClassVotes(Instance inst, MEFDT ht) {
       if (this.mcCorrectWeight > this.nbCorrectWeight) {
 	return this.observedClassDistribution.getArrayCopy();
       }
@@ -1395,7 +1395,7 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     }
   }
 
-  static class VFDT extends EFDT {
+  static class VFDT extends MEFDT {
 
     @Override
     protected void attemptToSplit(ActiveLearningNode node, SplitNode parent,
@@ -1564,10 +1564,10 @@ public class MEFDT extends AbstractClassifier implements MultiClassClassifier {
     protected LearningNode newLearningNode(double[] initialClassObservations) {
       LearningNode ret;
       int predictionOption = this.leafpredictionOption.getChosenIndex();
-      if (predictionOption == 0) { //MC
+      if (predictionOption == 0) { //
 	ret = new ActiveLearningNode(initialClassObservations);
       } else if (predictionOption == 1) { //NB
-	ret = new LearningNodeNB(initialClassObservations);
+	ret = new LearningNodeAD(initialClassObservations);
       } else { //NBAdaptive
 	ret = new LearningNodeNBAdaptive(initialClassObservations);
       }
